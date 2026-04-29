@@ -1,6 +1,12 @@
 # hendrikmuhs/ccache-action
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/hendrikmuhs/ccache-action](https://github.com/hendrikmuhs/ccache-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v1.2.22 | [`v1.2.22`](https://github.com/chainguard-actions/ccache-action/tree/v1.2.22) | — |
 
 ## Privacy
 
