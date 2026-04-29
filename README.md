@@ -1,5 +1,7 @@
 # hendrikmuhs/ccache-action
 
+github action to speedup building using ccache
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/hendrikmuhs/ccache-action](https://github.com/hendrikmuhs/ccache-action).
 
 ## Versions
