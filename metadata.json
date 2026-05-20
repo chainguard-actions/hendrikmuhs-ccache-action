@@ -1,7 +1,0 @@
-{
-  "owner": "hendrikmuhs",
-  "name": "ccache-action",
-  "visibility": "internal",
-  "description": "github action to speedup building using ccache",
-  "block_publish": false
-}
