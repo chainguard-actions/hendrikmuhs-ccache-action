@@ -8,7 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v1.2.22 | [`v1.2.22`](https://github.com/chainguard-actions/hendrikmuhs--ccache-action/tree/v1.2.22) | — |
+| v1.2.22 | [`v1.2.22`](https://github.com/chainguard-actions/hendrikmuhs-ccache-action/tree/v1.2.22) | — |
 
 ## Privacy
 
