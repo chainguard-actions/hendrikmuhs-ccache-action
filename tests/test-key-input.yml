@@ -1,0 +1,22 @@
+name: Test ccache action with key input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          key: my-custom-cache-key
+          max-size: "100MB"
+          append-timestamp: false
+          save: false
+      - name: Assert ccache is available
+        run: |
+          which ccache || (echo "FAIL: ccache not found in PATH" && exit 1)
+          echo "PASS: ccache is available"
