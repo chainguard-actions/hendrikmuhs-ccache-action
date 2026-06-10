@@ -1,4 +1,4 @@
-name: Test basic ccache usage
+name: Test ccache with custom key
 on:
   workflow_dispatch:
 jobs:
@@ -12,14 +12,14 @@ jobs:
       - id: ccache
         uses: .
         with:
+          key: my-custom-cache-key
           max-size: "100MB"
-          variant: ccache
           append-timestamp: false
           update-package-index: true
       - name: Assert ccache is available
         run: |
           which ccache || (echo "FAIL: ccache not found in PATH" && exit 1)
-          echo "PASS: ccache is available"
+          echo "PASS: ccache is available with custom key"
       - name: Assert ccache version
         run: |
           ccache --version
