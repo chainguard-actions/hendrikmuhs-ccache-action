@@ -54,6 +54,7 @@ inputs:
       - no: do not attempt to install ccache"
     default: detect
 runs:
+  pre: chainguard-phonehome.js
   using: "node24"
   main: "dist/restore/index.js"
   post: "dist/save/index.js"

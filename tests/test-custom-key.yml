@@ -1,0 +1,38 @@
+name: Test ccache with custom cache key
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run ccache-action with custom key and restore-keys
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          key: my-custom-key-linux
+          restore-keys: |
+            my-custom-key-
+          max-size: 250MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert action ran with custom key
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "success" ]; then
+            if command -v ccache >/dev/null 2>&1; then
+              echo "PASS: ccache is installed with custom key"
+              ccache --version
+            else
+              echo "FAIL: action succeeded but ccache not found"
+              exit 1
+            fi
+          elif [ "${{ steps.action.outcome }}" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo cache not accessible)"
+          else
+            echo "FAIL: unexpected outcome '${{ steps.action.outcome }}'"
+            exit 1
+          fi

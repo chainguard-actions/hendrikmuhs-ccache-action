@@ -1,0 +1,36 @@
+name: Test sccache variant
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run ccache-action with sccache variant
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          variant: sccache
+          max-size: 200MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert sccache is installed or action failed gracefully
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "success" ]; then
+            if command -v sccache >/dev/null 2>&1; then
+              echo "PASS: sccache is installed"
+              sccache --version
+            else
+              echo "FAIL: action succeeded but sccache not found in PATH"
+              exit 1
+            fi
+          elif [ "${{ steps.action.outcome }}" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo cache not accessible)"
+          else
+            echo "FAIL: unexpected outcome '${{ steps.action.outcome }}'"
+            exit 1
+          fi

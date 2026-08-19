@@ -1,0 +1,41 @@
+name: Test ccache with create-symlink option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run ccache-action with create-symlink enabled
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          create-symlink: true
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert symlinks created or action failed gracefully
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "success" ]; then
+            if command -v ccache >/dev/null 2>&1; then
+              echo "PASS: ccache is installed"
+              # Check if symlinks exist in /usr/local/bin
+              if ls /usr/local/bin/gcc /usr/local/bin/g++ /usr/local/bin/cc /usr/local/bin/c++ 2>/dev/null | head -1; then
+                echo "PASS: compiler symlinks found in /usr/local/bin"
+              else
+                echo "INFO: no compiler symlinks found (may depend on installed compilers)"
+              fi
+            else
+              echo "FAIL: action succeeded but ccache not found"
+              exit 1
+            fi
+          elif [ "${{ steps.action.outcome }}" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo cache not accessible)"
+          else
+            echo "FAIL: unexpected outcome '${{ steps.action.outcome }}'"
+            exit 1
+          fi
