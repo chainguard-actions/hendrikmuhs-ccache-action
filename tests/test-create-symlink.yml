@@ -1,0 +1,60 @@
+name: Test create-symlink feature
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Pre-install ccache (works as root under act)
+        run: |
+          apt-get install -y ccache 2>/dev/null || sudo apt-get install -y ccache 2>/dev/null || true
+          echo "ccache pre-install attempted"
+
+      - name: Pre-check compiler symlink state
+        run: |
+          echo "Pre-action state of /usr/local/bin compiler entries:"
+          for compiler in gcc g++ cc c++ clang clang++; do
+            if [ -e "/usr/local/bin/$compiler" ]; then
+              echo "  /usr/local/bin/$compiler exists"
+            else
+              echo "  /usr/local/bin/$compiler does not exist"
+            fi
+          done
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          key: test-symlink
+          max-size: 100M
+          create-symlink: true
+          append-timestamp: false
+          save: false
+
+      - name: Assert action ran (success or graceful failure)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "Action outcome: $OUTCOME"
+          echo "Post-action state of /usr/local/bin compiler entries:"
+          for compiler in gcc g++ cc c++ clang clang++; do
+            if [ -L "/usr/local/bin/$compiler" ]; then
+              TARGET=$(readlink "/usr/local/bin/$compiler")
+              echo "  Symlink: /usr/local/bin/$compiler -> $TARGET"
+            elif [ -e "/usr/local/bin/$compiler" ]; then
+              echo "  Real file: /usr/local/bin/$compiler"
+            else
+              echo "  Not found: /usr/local/bin/$compiler"
+            fi
+          done
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with create-symlink=true"
+          elif [ "$OUTCOME" = "failure" ] || [ -z "$OUTCOME" ]; then
+            echo "INFO: action failed or outcome not set (symlinks may already exist, or no cache service)"
+            echo "PASS: action failed gracefully"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

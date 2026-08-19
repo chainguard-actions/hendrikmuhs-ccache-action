@@ -1,0 +1,29 @@
+name: Test ccache with restore-keys
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          key: test-restore-keys-primary
+          restore-keys: |
+            test-restore-keys-fallback-
+            test-restore-keys-
+          max-size: 100M
+          save: false
+          append-timestamp: false
+      - name: Assert ccache is available
+        run: |
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache not found on PATH"
+            exit 1
+          fi
+          echo "PASS: ccache is available at $(command -v ccache)"
+      - name: Assert ccache is functional
+        run: |
+          ccache --version
+          echo "PASS: ccache --version succeeded"
