@@ -1,4 +1,4 @@
-name: Test ccache with custom cache key
+name: Test ccache with update-package-index enabled
 on:
   workflow_dispatch:
 jobs:
@@ -15,17 +15,15 @@ jobs:
           node --version
           sudo ln -sf "$(which node)" /usr/local/bin/node24 || true
 
-      - name: Run ccache action with custom key and no timestamp
+      - name: Run ccache action with update-package-index=true
         id: ccache
         uses: .
         with:
           variant: ccache
-          key: my-custom-key
+          update-package-index: true
           append-timestamp: false
-          max-size: 200MB
           restore: false
           save: false
-          update-package-index: true
 
       - name: Assert ccache is installed
         run: |
@@ -42,20 +40,20 @@ jobs:
           CONFIG=$(ccache -p 2>/dev/null || ccache --print-config 2>/dev/null || true)
           echo "Config output: $CONFIG"
           if echo "$CONFIG" | grep -q "cache_dir"; then
-            echo "PASS: ccache is configured with cache_dir"
+            echo "PASS: ccache is configured"
           else
-            echo "FAIL: ccache cache_dir not configured"
+            echo "FAIL: ccache is not configured"
             exit 1
           fi
 
-      - name: Assert ccache stats can be retrieved
+      - name: Assert ccache version is retrievable
         run: |
-          echo "Checking ccache stats..."
-          STATS=$(ccache -s 2>/dev/null || true)
-          echo "Stats: $STATS"
-          if [ -n "$STATS" ]; then
-            echo "PASS: ccache stats retrieved successfully"
+          echo "Checking ccache version..."
+          VERSION=$(ccache --version 2>/dev/null | head -1 || true)
+          echo "Version: $VERSION"
+          if [ -n "$VERSION" ]; then
+            echo "PASS: ccache version retrieved: $VERSION"
           else
-            echo "FAIL: ccache stats returned empty output"
+            echo "FAIL: ccache version not retrievable"
             exit 1
           fi

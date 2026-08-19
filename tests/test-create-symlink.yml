@@ -1,0 +1,87 @@
+name: Test ccache with symlink creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Node.js 24
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
+          sudo bash /tmp/nodesource_setup.sh
+          sudo apt-get install -y nodejs
+          node --version
+          sudo ln -sf "$(which node)" /usr/local/bin/node24 || true
+
+      - name: Run ccache action with symlink creation enabled
+        id: ccache
+        uses: .
+        with:
+          variant: ccache
+          create-symlink: true
+          append-timestamp: false
+          restore: false
+          save: false
+          update-package-index: true
+
+      - name: Assert ccache is installed
+        run: |
+          echo "Checking ccache is installed..."
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache is not installed"
+            exit 1
+          fi
+          echo "PASS: ccache is installed at $(which ccache)"
+
+      - name: Assert gcc symlink points to ccache
+        run: |
+          echo "Checking gcc symlink..."
+          if [ -L /usr/local/bin/gcc ]; then
+            TARGET=$(readlink /usr/local/bin/gcc)
+            echo "gcc symlink target: $TARGET"
+            if echo "$TARGET" | grep -q "ccache"; then
+              echo "PASS: gcc symlink points to ccache"
+            else
+              echo "FAIL: gcc symlink does not point to ccache, points to: $TARGET"
+              exit 1
+            fi
+          else
+            echo "FAIL: /usr/local/bin/gcc is not a symlink"
+            exit 1
+          fi
+
+      - name: Assert g++ symlink points to ccache
+        run: |
+          echo "Checking g++ symlink..."
+          if [ -L /usr/local/bin/g++ ]; then
+            TARGET=$(readlink /usr/local/bin/g++)
+            echo "g++ symlink target: $TARGET"
+            if echo "$TARGET" | grep -q "ccache"; then
+              echo "PASS: g++ symlink points to ccache"
+            else
+              echo "FAIL: g++ symlink does not point to ccache, points to: $TARGET"
+              exit 1
+            fi
+          else
+            echo "FAIL: /usr/local/bin/g++ is not a symlink"
+            exit 1
+          fi
+
+      - name: Assert clang symlink points to ccache
+        run: |
+          echo "Checking clang symlink..."
+          if [ -L /usr/local/bin/clang ]; then
+            TARGET=$(readlink /usr/local/bin/clang)
+            echo "clang symlink target: $TARGET"
+            if echo "$TARGET" | grep -q "ccache"; then
+              echo "PASS: clang symlink points to ccache"
+            else
+              echo "FAIL: clang symlink does not point to ccache, points to: $TARGET"
+              exit 1
+            fi
+          else
+            echo "FAIL: /usr/local/bin/clang is not a symlink"
+            exit 1
+          fi

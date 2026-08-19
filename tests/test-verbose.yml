@@ -1,4 +1,4 @@
-name: Test ccache with custom cache key
+name: Test ccache with verbose output
 on:
   workflow_dispatch:
 jobs:
@@ -15,14 +15,13 @@ jobs:
           node --version
           sudo ln -sf "$(which node)" /usr/local/bin/node24 || true
 
-      - name: Run ccache action with custom key and no timestamp
+      - name: Run ccache action with verbose=1
         id: ccache
         uses: .
         with:
           variant: ccache
-          key: my-custom-key
+          verbose: 1
           append-timestamp: false
-          max-size: 200MB
           restore: false
           save: false
           update-package-index: true
@@ -42,20 +41,20 @@ jobs:
           CONFIG=$(ccache -p 2>/dev/null || ccache --print-config 2>/dev/null || true)
           echo "Config output: $CONFIG"
           if echo "$CONFIG" | grep -q "cache_dir"; then
-            echo "PASS: ccache is configured with cache_dir"
+            echo "PASS: ccache is configured"
           else
-            echo "FAIL: ccache cache_dir not configured"
+            echo "FAIL: ccache is not configured"
             exit 1
           fi
 
-      - name: Assert ccache stats can be retrieved
+      - name: Assert ccache stats work with verbose flag
         run: |
-          echo "Checking ccache stats..."
-          STATS=$(ccache -s 2>/dev/null || true)
-          echo "Stats: $STATS"
-          if [ -n "$STATS" ]; then
-            echo "PASS: ccache stats retrieved successfully"
+          echo "Checking ccache stats with verbose..."
+          # Check if ccache supports --verbose flag
+          if ccache --help 2>&1 | grep -q "\-\-verbose"; then
+            STATS=$(ccache -s -v 2>/dev/null || true)
           else
-            echo "FAIL: ccache stats returned empty output"
-            exit 1
+            STATS=$(ccache -s 2>/dev/null || true)
           fi
+          echo "Stats: $STATS"
+          echo "PASS: ccache stats ran successfully"

@@ -1,4 +1,4 @@
-name: Test ccache with custom cache key
+name: Test ccache with install=no (pre-installed ccache)
 on:
   workflow_dispatch:
 jobs:
@@ -15,26 +15,30 @@ jobs:
           node --version
           sudo ln -sf "$(which node)" /usr/local/bin/node24 || true
 
-      - name: Run ccache action with custom key and no timestamp
+      - name: Pre-install ccache via apt
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ccache
+          echo "Pre-installed ccache version: $(ccache --version | head -1)"
+
+      - name: Run ccache action with install=no
         id: ccache
         uses: .
         with:
           variant: ccache
-          key: my-custom-key
+          install: no
           append-timestamp: false
-          max-size: 200MB
           restore: false
           save: false
-          update-package-index: true
 
-      - name: Assert ccache is installed
+      - name: Assert ccache is still available (pre-installed)
         run: |
-          echo "Checking ccache is installed..."
+          echo "Checking ccache is available..."
           if ! command -v ccache >/dev/null 2>&1; then
-            echo "FAIL: ccache is not installed"
+            echo "FAIL: ccache is not available"
             exit 1
           fi
-          echo "PASS: ccache is installed at $(which ccache)"
+          echo "PASS: ccache is available at $(which ccache)"
 
       - name: Assert ccache is configured
         run: |
@@ -42,20 +46,8 @@ jobs:
           CONFIG=$(ccache -p 2>/dev/null || ccache --print-config 2>/dev/null || true)
           echo "Config output: $CONFIG"
           if echo "$CONFIG" | grep -q "cache_dir"; then
-            echo "PASS: ccache is configured with cache_dir"
+            echo "PASS: ccache is configured"
           else
-            echo "FAIL: ccache cache_dir not configured"
-            exit 1
-          fi
-
-      - name: Assert ccache stats can be retrieved
-        run: |
-          echo "Checking ccache stats..."
-          STATS=$(ccache -s 2>/dev/null || true)
-          echo "Stats: $STATS"
-          if [ -n "$STATS" ]; then
-            echo "PASS: ccache stats retrieved successfully"
-          else
-            echo "FAIL: ccache stats returned empty output"
+            echo "FAIL: ccache is not configured"
             exit 1
           fi

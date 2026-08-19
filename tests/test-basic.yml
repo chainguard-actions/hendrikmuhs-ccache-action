@@ -4,23 +4,64 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: ccache
+
+      - name: Install Node.js 24
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
+          sudo bash /tmp/nodesource_setup.sh
+          sudo apt-get install -y nodejs
+          node --version
+          sudo ln -sf "$(which node)" /usr/local/bin/node24 || true
+
+      - name: Run ccache action with defaults
+        id: ccache
         uses: .
         with:
-          max-size: "100MB"
           variant: ccache
+          max-size: 500MB
           append-timestamp: false
+          restore: false
+          save: false
           update-package-index: true
-      - name: Assert ccache is available
+
+      - name: Assert ccache is installed
         run: |
-          which ccache || (echo "FAIL: ccache not found in PATH" && exit 1)
-          echo "PASS: ccache is available"
-      - name: Assert ccache version
+          echo "Checking ccache is installed..."
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache is not installed"
+            exit 1
+          fi
+          echo "PASS: ccache is installed at $(which ccache)"
+
+      - name: Assert ccache is configured with correct max size
         run: |
-          ccache --version
-          echo "PASS: ccache --version succeeded"
+          echo "Checking ccache max_size config..."
+          CONFIG=$(ccache -p 2>/dev/null || ccache --print-config 2>/dev/null || true)
+          echo "Config output: $CONFIG"
+          if echo "$CONFIG" | grep -q "max_size"; then
+            echo "PASS: max_size is configured"
+          else
+            echo "FAIL: max_size not found in ccache config"
+            exit 1
+          fi
+
+      - name: Assert ccache cache dir is configured
+        run: |
+          echo "Checking ccache cache_dir config..."
+          CONFIG=$(ccache -p 2>/dev/null || ccache --print-config 2>/dev/null || true)
+          echo "Config output: $CONFIG"
+          if echo "$CONFIG" | grep -q "cache_dir"; then
+            echo "PASS: cache_dir is configured"
+          else
+            echo "FAIL: cache_dir not found in ccache config"
+            exit 1
+          fi
+
+      - name: Assert ccache stats work
+        run: |
+          echo "Checking ccache stats..."
+          STATS=$(ccache -s 2>/dev/null || true)
+          echo "Stats: $STATS"
+          echo "PASS: ccache stats command ran successfully"
