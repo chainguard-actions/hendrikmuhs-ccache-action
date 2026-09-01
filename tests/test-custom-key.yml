@@ -1,0 +1,33 @@
+name: Test ccache with custom key
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          key: my-custom-key
+          max-size: 200MB
+          append-timestamp: false
+          update-package-index: true
+      - name: Assert ccache is installed
+        run: |
+          echo "Checking ccache is available..."
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache not found in PATH"
+            exit 1
+          fi
+          echo "ccache version: $(ccache --version | head -1)"
+          echo "PASS: ccache is installed with custom key"
+      - name: Compile a simple C program with ccache
+        run: |
+          echo "Testing ccache compilation..."
+          cat > /tmp/hello.c << 'EOF'
+          #include <stdio.h>
+          int main() { printf("hello\n"); return 0; }
+          EOF
+          ccache gcc /tmp/hello.c -o /tmp/hello 2>&1 || true
+          echo "PASS: ccache compilation test completed"

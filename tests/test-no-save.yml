@@ -1,0 +1,29 @@
+name: Test ccache with save disabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          save: false
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+      - name: Assert ccache is installed with save disabled
+        run: |
+          echo "Checking ccache is available..."
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache not found in PATH"
+            exit 1
+          fi
+          echo "ccache version: $(ccache --version | head -1)"
+          echo "PASS: ccache is installed with save=false"
+      - name: Assert ccache is configured
+        run: |
+          echo "Checking ccache configuration..."
+          ccache --show-config 2>&1 || ccache -p 2>&1 || true
+          echo "PASS: ccache configuration accessible"

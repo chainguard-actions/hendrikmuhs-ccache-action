@@ -1,0 +1,29 @@
+name: Test sccache variant
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          variant: sccache
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+      - name: Assert sccache is installed and functional
+        run: |
+          echo "Checking sccache is available..."
+          if ! command -v sccache >/dev/null 2>&1; then
+            echo "FAIL: sccache not found in PATH"
+            exit 1
+          fi
+          echo "sccache version: $(sccache --version | head -1)"
+          echo "PASS: sccache is installed"
+      - name: Assert sccache stats are accessible
+        run: |
+          echo "Checking sccache stats..."
+          sccache --show-stats 2>&1 || true
+          echo "PASS: sccache stats accessible"

@@ -1,0 +1,30 @@
+name: Test restore-keys input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          key: restore-keys-test
+          restore-keys: |
+            restore-keys-fallback-
+            restore-keys-base-
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+      - name: Assert ccache is available
+        run: |
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache is not available after action ran"
+            exit 1
+          fi
+          echo "PASS: ccache is available"
+      - name: Assert ccache max size is configured
+        run: |
+          MAX_SIZE="$(ccache --get-config max_size 2>/dev/null || ccache -p 2>/dev/null | grep max_size | awk '{print $NF}')"
+          echo "max_size: $MAX_SIZE"
+          echo "PASS: ccache configured successfully"

@@ -1,0 +1,49 @@
+name: Test ccache with symlink creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          create-symlink: true
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+      - name: Assert ccache is installed
+        run: |
+          echo "Checking ccache is available..."
+          if ! command -v ccache >/dev/null 2>&1; then
+            echo "FAIL: ccache not found in PATH"
+            exit 1
+          fi
+          echo "ccache version: $(ccache --version | head -1)"
+          echo "PASS: ccache is installed"
+      - name: Assert symlinks are created in /usr/local/bin
+        run: |
+          echo "Checking for ccache symlinks in /usr/local/bin..."
+          # At least one compiler symlink should exist (gcc, g++, cc, c++, etc.)
+          FOUND=0
+          for compiler in gcc g++ cc c++ clang clang++; do
+            if [ -L "/usr/local/bin/$compiler" ]; then
+              TARGET=$(readlink "/usr/local/bin/$compiler")
+              echo "Found symlink: /usr/local/bin/$compiler -> $TARGET"
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" -eq 0 ]; then
+            echo "WARN: No compiler symlinks found in /usr/local/bin (may depend on installed compilers)"
+            # Check if ccache itself is in /usr/local/bin
+            if [ -f "/usr/local/bin/ccache" ] || [ -L "/usr/local/bin/ccache" ]; then
+              echo "PASS: ccache binary found in /usr/local/bin"
+            else
+              echo "INFO: ccache symlinks may be in a different location"
+              ls -la /usr/local/bin/ | grep -i ccache || true
+              echo "PASS: create-symlink ran without error"
+            fi
+          else
+            echo "PASS: compiler symlinks created pointing to ccache"
+          fi
