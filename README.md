@@ -11,6 +11,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v.12.17 | [`v.12.17`](https://github.com/chainguard-actions/hendrikmuhs-ccache-action/tree/v.12.17) | [`a1209f8`](https://github.com/hendrikmuhs/ccache-action/commit/a1209f81afb8c005c13b4296c32e363431bffea5) |
 | v1.2.22 | [`v1.2.22`](https://github.com/chainguard-actions/hendrikmuhs-ccache-action/tree/v1.2.22) | [`3352247`](https://github.com/hendrikmuhs/ccache-action/commit/33522472633dbd32578e909b315f5ee43ba878ce) |
 | v1.2.23 | [`v1.2.23`](https://github.com/chainguard-actions/hendrikmuhs-ccache-action/tree/v1.2.23) | [`d62db5f`](https://github.com/hendrikmuhs/ccache-action/commit/d62db5f07c26379fc4b4e0916f098a92573c3b03) |
+| v1.2.24 | [`v1.2.24`](https://github.com/chainguard-actions/hendrikmuhs-ccache-action/tree/v1.2.24) | [`f09c25b`](https://github.com/hendrikmuhs/ccache-action/commit/f09c25b45002a07be2955cbe52e8cee55643f89d) |
 
 ## Privacy
 
