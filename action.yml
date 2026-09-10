@@ -42,7 +42,6 @@ inputs:
       since the job started, which evicts all cache files that were not touched during the job run."
     default: ''
 runs:
-  pre: chainguard-phonehome.js
   using: "node20"
   main: "dist/restore/index.js"
   post: "dist/save/index.js"
