@@ -9,16 +9,16 @@ jobs:
       - id: action
         uses: .
         with:
-          key: restore-keys-test
+          key: test-restore-keys-primary
           restore-keys: |
-            restore-keys-fallback-
-            restore-keys-base-
+            test-restore-keys-
+            test-
           max-size: 100MB
           append-timestamp: false
       - name: Assert ccache is available
         run: |
           if ! command -v ccache >/dev/null 2>&1; then
-            echo "FAIL: ccache not found on PATH"
+            echo "FAIL: ccache is not available after action ran"
             exit 1
           fi
           echo "PASS: ccache is available"
