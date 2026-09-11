@@ -19,12 +19,16 @@ jobs:
       - name: Assert ccache is available
         run: |
           if ! command -v ccache >/dev/null 2>&1; then
-            echo "FAIL: ccache is not available after action ran"
+            echo "FAIL: ccache not found on PATH"
             exit 1
           fi
-          echo "PASS: ccache is available"
-      - name: Assert ccache max size is configured
+          echo "PASS: ccache is available at $(command -v ccache)"
+      - name: Assert ccache is functional
         run: |
-          MAX_SIZE="$(ccache --get-config max_size 2>/dev/null || ccache -p 2>/dev/null | grep max_size | awk '{print $NF}')"
-          echo "max_size: $MAX_SIZE"
-          echo "PASS: ccache configured successfully"
+          VERSION=$(ccache --version | head -1)
+          echo "ccache version: $VERSION"
+          if [ -z "$VERSION" ]; then
+            echo "FAIL: ccache --version returned empty"
+            exit 1
+          fi
+          echo "PASS: ccache is functional"
