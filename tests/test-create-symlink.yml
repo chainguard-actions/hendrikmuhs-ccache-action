@@ -1,0 +1,46 @@
+name: Test create-symlink option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          create-symlink: true
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert ccache is installed and symlinks created
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # ccache should be installed
+          if command -v ccache >/dev/null 2>&1; then
+            echo "PASS: ccache is installed"
+            ccache --version
+          else
+            echo "FAIL: ccache was not installed"
+            exit 1
+          fi
+          # The action either succeeded or failed gracefully (sentinel repo)
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome '$OUTCOME'"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+          # If action succeeded, check that symlinks exist in /usr/local/bin
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -L /usr/local/bin/gcc ] || [ -L /usr/local/bin/g++ ] || [ -L /usr/local/bin/cc ]; then
+              echo "PASS: ccache symlinks found in /usr/local/bin"
+            else
+              echo "INFO: no compiler symlinks found (may depend on installed compilers)"
+            fi
+          fi

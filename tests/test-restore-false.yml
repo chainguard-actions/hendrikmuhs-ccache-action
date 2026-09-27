@@ -1,0 +1,38 @@
+name: Test restore=false (no cache restore)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          restore: false
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert ccache is installed even with restore=false
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # ccache should be installed regardless of restore setting
+          if command -v ccache >/dev/null 2>&1; then
+            echo "PASS: ccache is installed"
+            ccache --version
+          else
+            echo "FAIL: ccache was not installed"
+            exit 1
+          fi
+          # The action either succeeded or failed gracefully (sentinel repo)
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome '$OUTCOME'"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

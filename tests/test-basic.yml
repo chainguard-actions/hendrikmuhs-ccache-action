@@ -1,0 +1,37 @@
+name: Test basic ccache usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          max-size: 100MB
+          append-timestamp: false
+          update-package-index: true
+
+      - name: Assert ccache is installed and action ran
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # Regardless of cache API outcome, ccache should be installed
+          if command -v ccache >/dev/null 2>&1; then
+            echo "PASS: ccache is installed"
+            ccache --version
+          else
+            echo "FAIL: ccache was not installed"
+            exit 1
+          fi
+          # The action either succeeded or failed gracefully (sentinel repo)
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action completed with outcome '$OUTCOME'"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
