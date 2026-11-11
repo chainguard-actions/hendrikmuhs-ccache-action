@@ -1,0 +1,39 @@
+name: Test create-symlink
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Ensure symlink targets are free
+        run: |
+          SUDO=""
+          if command -v sudo >/dev/null 2>&1; then SUDO=sudo; fi
+          for b in gcc g++ cc c++ clang clang++ emcc em++; do
+            $SUDO rm -f "/usr/local/bin/$b"
+          done
+      - id: action
+        uses: .
+        with:
+          install: binary
+          restore: "false"
+          save: "false"
+          create-symlink: "true"
+      - name: Assert symlinks created
+        run: |
+          CCACHE="$(command -v ccache)"
+          echo "ccache: $CCACHE"
+          for b in gcc g++ cc c++ clang clang++ emcc em++; do
+            if [ ! -L "/usr/local/bin/$b" ]; then
+              echo "FAIL: /usr/local/bin/$b is not a symlink"
+              exit 1
+            fi
+            T="$(readlink "/usr/local/bin/$b")"
+            echo "$b -> $T"
+            case "$T" in
+              *ccache) ;;
+              *) echo "FAIL: /usr/local/bin/$b does not point to ccache"; exit 1 ;;
+            esac
+          done
+          echo "PASS"
