@@ -4,8 +4,13 @@
   "version": "v1.2.24",
   "commit_sha": "f09c25b45002a07be2955cbe52e8cee55643f89d",
   "url": "https://github.com/hendrikmuhs/ccache-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/hendrikmuhs/ccache-action/v1.2.24/sha256-8bf0a04cd2107ea5362acb97e410866415cfae5dc38369317642a406ac45cbdc.tar.gz",
+    "sha256": "8bf0a04cd2107ea5362acb97e410866415cfae5dc38369317642a406ac45cbdc",
+    "size_bytes": 1293601
+  }
 }
